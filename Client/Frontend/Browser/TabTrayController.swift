@@ -647,7 +647,7 @@ class TabTrayController: UIViewController {
             if let tab = tab {
                 self.tabManager.selectTab(tab)
             }
-        }, completion: nil)
+        })
     }
 }
 

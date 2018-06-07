@@ -609,13 +609,13 @@ class BrowserViewController: UIViewController {
         weak var weakSelf = self
         let popup = AlertPopupView(image: UIImage(named: "duckduckgo"), title: Strings.DDG_callout_title, message: Strings.DDG_callout_message)
         popup.dismissHandler = {
-            self.presentBrowserLockCallout()
+            weakSelf?.presentBrowserLockCallout()
         }
-        popup.addButton(title: Strings.DDG_callout_no) { () -> PopupViewDismissType in
+        popup.addButton(title: Strings.DDG_callout_no) { _ in
             weakSelf?.profile.prefs.setBool(true, forKey: kPrefKeyPopupForDDG)
             return .flyDown
         }
-        popup.addDefaultButton(title: Strings.DDG_callout_enable) { () -> PopupViewDismissType in
+        popup.addDefaultButton(title: Strings.DDG_callout_enable) { _ in
             if getApp().profile == nil {
                 return .flyUp
             }
@@ -623,7 +623,10 @@ class BrowserViewController: UIViewController {
             weakSelf?.profile.prefs.setBool(true, forKey: kPrefKeyPopupForDDG)
             weakSelf?.profile.searchEngines.defaultEngine(engine: "DuckDuckGo", forType: .privateMode)
             
-            NotificationCenter.default.post(name: NotificationDDGPrivateSearchEnabled, object: nil)
+            if let topSitesPanel = weakSelf?.homePanelController?.topSitesPanel as? TopSitesPanel {
+                topSitesPanel.ddgPrivateSearchCompletionBlock?()
+            }
+            
             return .flyUp
         }
         popup.showWithType(showType: .normal)

@@ -97,7 +97,7 @@ class TopSitesPanel: UIViewController, HomePanel {
     
     fileprivate lazy var ddgButton: UIControl = {
         let control = UIControl()
-        control.addTarget(self, action: #selector(SEL_ddg), for: .touchUpInside)
+        control.addTarget(self, action: #selector(showDDGCallout), for: .touchUpInside)
         return control
     }()
 
@@ -106,6 +106,9 @@ class TopSitesPanel: UIViewController, HomePanel {
         view.autoresizingMask = [.flexibleWidth]
         return view
     }()
+    
+    /// Called after user taps on ddg popup to set it as a default search enginge in private browsing mode.
+    var ddgPrivateSearchCompletionBlock: (() -> ())?
 
     // MARK: - Init/lifecycle
     init() {
@@ -127,7 +130,6 @@ class TopSitesPanel: UIViewController, HomePanel {
     deinit {
         NotificationCenter.default.removeObserver(self, name: NotificationTopSitesConversion, object: nil)
         NotificationCenter.default.removeObserver(self, name: NotificationPrivacyModeChanged, object: nil)
-        NotificationCenter.default.removeObserver(self, name: NotificationDDGPrivateSearchEnabled, object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
     }
 
@@ -171,7 +173,9 @@ class TopSitesPanel: UIViewController, HomePanel {
             hideDDG()
         }
         
-        NotificationCenter.default.addObserver(self, selector: #selector(self.hideDDG), name: NotificationDDGPrivateSearchEnabled, object: nil)
+        ddgPrivateSearchCompletionBlock = { [weak self] in
+            self?.hideDDG()
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -253,19 +257,19 @@ class TopSitesPanel: UIViewController, HomePanel {
                 make.right.equalTo(0)
             }
             
-            ddgLogo.snp.makeConstraints { (make) -> Void in
+            ddgLogo.snp.makeConstraints { make in
                 make.top.left.bottom.equalTo(0)
                 make.size.equalTo(38)
             }
             
-            ddgLabel.snp.makeConstraints { (make) -> Void in
+            ddgLabel.snp.makeConstraints { make in
                 make.top.right.bottom.equalTo(0)
                 make.left.equalTo(self.ddgLogo.snp.right).offset(5)
                 make.width.equalTo(180)
                 make.centerY.equalTo(self.ddgLogo)
             }
             
-            ddgButton.snp.makeConstraints { (make) -> Void in
+            ddgButton.snp.makeConstraints { make in
                 make.top.equalTo(self.privateTabLinkButton.snp.bottom).offset(30)
                 make.centerX.equalTo(self.collection)
                 make.bottom.equalTo(-8)
@@ -339,7 +343,7 @@ class TopSitesPanel: UIViewController, HomePanel {
         self.view.setNeedsUpdateConstraints()
     }
 
-    func SEL_ddg() {
+    func showDDGCallout() {
         getApp().browserViewController.presentDDGCallout(force: true)
     }
 
